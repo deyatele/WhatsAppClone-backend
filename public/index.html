@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>WebSocket Chat Client</title>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        #rooms {
+            margin: 10px 0;
+        }
+
+        .room {
+            padding: 5px;
+            border: 1px solid #ccc;
+            margin: 3px;
+            cursor: pointer;
+        }
+
+        .room:hover {
+            background: #f0f0f0;
+        }
+
+        #log {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body style="display: flex; flex-direction: column; padding: 10px; ">
+    <h2>Chat + Call Client</h2>
+
+
+    <div>
+        <label>JWT Token Test: <input type="text" id="token-test" size="50"
+                value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMWM4OWExNC1hNmIzLTQ2YzgtOTgzNC0wZjE4MGVlMTBjMGQiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJpYXQiOjE3NjAyNjY0OTksImV4cCI6MTc2MDYyNjQ5OX0.QRc1tDPQ7J1LmMzNXK96ufUm4R74gquhMXOLvOKSFbs"></label>
+        <button style="padding: 10px; margin-bottom: 10px" onclick="connect('token-test')">Connect</button>
+    </div>
+    </br>
+    <div>
+        <label>JWT Token Solic: <input type="text" id="token-test" size="50"
+                value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxYjc2OGI1Ny00YmQyLTRlYTEtYmY0OC0wY2YxOGMyZGUwNzYiLCJlbWFpbCI6ImRleWF0ZWxlQGdtYWlsLmNvbSIsImlhdCI6MTc2MDI2NjEwNSwiZXhwIjoxNzYwNjI2MTA1fQ.FMbOhoH8mcPAiLskTjUDTvR_n_l1xNg1sPztejOIkcE"></label>
+        <button style="padding: 10px; margin-bottom: 10px" onclick="connect('token-test')">Connect</button>
+    </div>
+    </br>
+    <div>
+        <label>JWT Token Deyatele: <input type="text" id="token-deyatele" size="50"
+                value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiMGU0OWVhZC1iMGE2LTQ2OGEtODc0NS0xOTZiZTg4N2RlYmMiLCJlbWFpbCI6ImRleWF0ZWxlQG1haWwucnUiLCJpYXQiOjE3NTk5NDU1MTcsImV4cCI6MTc2MDMwNTUxN30.dLssM6eRRPTn95ofEOmBo47OEFPb5YCbTB6UPHEFhCI"></label>
+        <button style="padding: 10px;" onclick="connect('token-deyatele')">Connect</button>
+    </div>
+
+    <h3>Rooms</h3>
+    <div id="rooms"></div>
+    <div style="display:flex; flex-direction: column; ">
+        <div id="video" style="display: none;"></div>
+        <div id="video-controls" style="margin-top: 10px; display: none;">
+            <button onclick="toggleVideo()">🎬 Камера</button>
+            <button onclick="toggleAudio()">🎤 Микрофон</button>
+            <button onclick="toggleRemote()">🔇 Собеседник</button>
+            <button onclick="switchCamera()">🔄 Сменить камеру</button>
+            <button onclick="toggleScreenShare()">🖥 Экран</button>
+            <button onclick="endCall()">❌ Завершить</button>
+        </div>
+    </div>
+
+
+
+    <h3>Log</h3>
+    <div id="log"></div>
+
+    <script src="utils.js"></script>
+    <script src="ui.js"></script>
+    <script src="client.js"></script>
+    <!-- <script src="webrtc.js"></script> -->
+</body>
+
+</html>

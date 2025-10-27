@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  phone     String    @unique
+  email     String?   @unique
+  password  String
+  name      String?
+  avatar    String?   
+  isOnline  Boolean   @default(false)
+  lastSeen  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // связи
+  messages      Message[]         @relation("UserMessages")
+  callsFrom     Call[]            @relation("CallFrom")
+  callsTo       Call[]            @relation("CallTo")
+  refreshTokens RefreshToken[]
+  chats         ChatParticipant[]
+  contacts      Contact[]         @relation("UserContacts")
+  contactOf     Contact[]         @relation("ContactOf")
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  ownerId   String
+  contactId String
+  createdAt DateTime @default(now())
+
+  owner   User @relation("UserContacts", fields: [ownerId], references: [id], onDelete: Cascade)
+  contact User @relation("ContactOf", fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId, contactId])
+}
+
+model Chat {
+  id           String            @id @default(uuid())
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  participants ChatParticipant[]
+  messages     Message[]
+}
+
+model ChatParticipant {
+  id     String @id @default(uuid())
+  chatId String
+  userId String
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+}
+
+model Message {
+  id              String   @id @default(uuid())
+  content         String
+  deletedSender   Boolean  @default(false)
+  deletedReceiver Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  chatId String
+  chat   Chat   @relation(fields: [chatId], references: [id])
+
+  senderId String
+  sender   User   @relation("UserMessages", fields: [senderId], references: [id])
+}
+
+model Call {
+  id        String     @id @default(uuid())
+  status    CallStatus @default(pending)
+  startedAt DateTime   @default(now())
+  endedAt   DateTime?
+
+  fromId String
+  from   User   @relation("CallFrom", fields: [fromId], references: [id])
+
+  toId String
+  to   User   @relation("CallTo", fields: [toId], references: [id])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+enum CallStatus {
+  pending
+  accepted
+  rejected
+  ended
+}
