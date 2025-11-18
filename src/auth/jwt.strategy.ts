@@ -8,11 +8,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(cfg: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: cfg.get<string>('JWT_SECRET',{ infer: true })!,
+      secretOrKey: cfg.get<string>('JWT_SECRET', { infer: true })!,
     });
   }
 
   async validate(payload: any) {
-  return { userId: payload.sub, email: payload.email }; 
-}
+    return { id: payload.sub, userId: payload.sub, email: payload.email };
+  }
 }

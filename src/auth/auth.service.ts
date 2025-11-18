@@ -1,12 +1,12 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
-import { RegisterDto } from './dto/register.dto';
+import type { RegisterDto } from './dto/register.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
-import { User } from '@prisma/client';
-import { SafeUser } from '../types';
+import { Prisma, type User } from '@prisma/client';
+import type { SafeUser } from '../types';
 
 @Injectable()
 export class AuthService {
@@ -17,7 +17,7 @@ export class AuthService {
     private cfg: ConfigService,
   ) {}
 
-  async validateUser(identifier: string, password: string) {
+  async validateUser(identifier: string, password: string): Promise<Omit<User, 'password'>> {
     const user = identifier.includes('@')
       ? await this.usersService.findByEmail(identifier)
       : await this.usersService.findByPhone(identifier);
@@ -27,7 +27,19 @@ export class AuthService {
     const match = await bcrypt.compare(password, user.password);
     if (!match) throw new UnauthorizedException('Логин или пароль неверны');
 
-    const { password: _, ...safeUser } = user;
+    const safeUser: Omit<User, 'password'> = {
+      id: user.id,
+      phone: user.phone,
+      email: user.email,
+      name: user.name,
+      avatar: user.avatar,
+      isOnline: user.isOnline,
+      lastSeen: user.lastSeen,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      publicKeyJwk: user.publicKeyJwk,
+      privateKeyJwk: user.privateKeyJwk,
+    };
     return safeUser;
   }
 
@@ -60,6 +72,9 @@ export class AuthService {
       phone: dto.phone,
       password: hashedPassword,
       name: dto.name ?? '',
+      publicKeyJwk: dto.publicKeyJwk
+        ? (dto.publicKeyJwk as Prisma.InputJsonValue)
+        : Prisma.JsonNull,
     });
 
     return newUser;
@@ -98,5 +113,16 @@ export class AuthService {
   async revokeRefreshToken(refreshToken: string) {
     await this.prisma.refreshToken.deleteMany({ where: { token: refreshToken } });
     return { ok: true };
+  }
+
+  async validatePassword(userId: string, password: string): Promise<boolean> {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    const result = await bcrypt.compare(password, user.password);
+    if (!result) throw new UnauthorizedException('Пароль не верный');
+    return result;
   }
 }

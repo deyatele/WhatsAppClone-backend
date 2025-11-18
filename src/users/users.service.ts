@@ -5,8 +5,10 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { SafeUser } from '../types';
+import type { UpdateUserDto } from './dto/update-user.dto';
+import { Prisma } from '@prisma/client';
+import type { JsonWebKey, JsonWebKeyPrivate } from '../types/jwk';
+import { KeyWithPrivateBackupDto } from '../keys/dto/create-key.dto';
 
 @Injectable()
 export class UsersService {
@@ -25,7 +27,7 @@ export class UsersService {
   //       updatedAt: true,
   //     },
   //     include: {
-        
+
   //     }
   //   });
   // }
@@ -51,7 +53,13 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { phone } });
   }
 
-  async create(data: { email?: string; phone: string; password: string; name?: string }) {
+  async create(data: {
+    email?: string;
+    phone: string;
+    password: string;
+    name?: string;
+    publicKeyJwk?: Prisma.InputJsonValue | typeof Prisma.JsonNull;
+  }) {
     if (!data.email && !data.phone) {
       throw new BadRequestException('Требуется email или телефон');
     }
@@ -62,6 +70,9 @@ export class UsersService {
           phone: data.phone,
           password: data.password,
           name: data.name ?? '',
+          publicKeyJwk: data.publicKeyJwk
+            ? (data.publicKeyJwk as Prisma.InputJsonValue)
+            : Prisma.JsonNull,
         },
       });
       return user;
@@ -91,7 +102,7 @@ export class UsersService {
         email: true,
         phone: true,
         name: true,
-        avatar:true,
+        avatar: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -116,7 +127,7 @@ export class UsersService {
         email: true,
         phone: true,
         name: true,
-        avatar:true,
+        avatar: true,
         isOnline: true,
         lastSeen: true,
         createdAt: true,
@@ -124,5 +135,50 @@ export class UsersService {
       },
     });
     return updatedUser;
+  }
+
+  async updateKeys(id: string, body: KeyWithPrivateBackupDto) {
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        publicKeyJwk: body.publicKeyJwk
+          ? (body.publicKeyJwk as Prisma.InputJsonValue)
+          : Prisma.JsonNull,
+        privateKeyJwk: body.privateKeyBackup
+          ? (body.privateKeyBackup as Prisma.InputJsonValue)
+          : Prisma.JsonNull,
+      },
+    });
+  }
+  async getKeysWithPrivateBackup(id: string): Promise<KeyWithPrivateBackupDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        privateKeyJwk: true,
+        publicKeyJwk: true,
+      },
+    });
+
+    if (!user) throw new NotFoundException('Пользователь не найден');
+
+    return {
+      publicKeyJwk: user.publicKeyJwk as JsonWebKey,
+      privateKeyBackup: user.privateKeyJwk as JsonWebKeyPrivate,
+    } satisfies KeyWithPrivateBackupDto;
+  }
+  async getPublicKey(id: string): Promise<{ publicKeyJwk: JsonWebKey | null }> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        publicKeyJwk: true,
+      },
+    });
+
+    if (!user) throw new NotFoundException('Пользователь не найден');
+
+    return {
+      publicKeyJwk: user.publicKeyJwk as JsonWebKey | null,
+    };
   }
 }

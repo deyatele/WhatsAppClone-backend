@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsEmail, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsEmail, MinLength, IsObject } from 'class-validator';
+import type { JsonWebKey } from '../../types/jwk';
 
 export class CreateUserDto {
   @ApiProperty({ description: 'Телефон пользователя' })
@@ -20,4 +21,9 @@ export class CreateUserDto {
   @IsOptional()
   @IsEmail()
   email?: string;
+
+  @ApiProperty({ description: 'Публичный ключ пользователя', required: false })
+  @IsOptional()
+  @IsObject()
+  publicKeyJwk?: JsonWebKey;
 }

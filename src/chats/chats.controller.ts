@@ -87,7 +87,7 @@ export class ChatsController {
     },
   })
   async getMyChats(@Req() req: any) {
-    return await this.chats.getUserChats(req.user.userId)
+    return await this.chats.getUserChats(req.user.userId);
   }
 
   @Post('join')

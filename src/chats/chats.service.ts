@@ -98,7 +98,7 @@ export class ChatsService {
       },
       include: {
         participants: {
-          include: { user: { select: { id: true, name: true, avatar: true } } },
+          include: { user: { select: { id: true, name: true, avatar: true, publicKeyJwk: true } } },
         },
         messages: {
           where: {
@@ -115,11 +115,12 @@ export class ChatsService {
           },
           orderBy: { createdAt: 'desc' },
           take: 1,
-          include: { sender: { select: { id: true, name: true } } },
+          include: { sender: { select: { id: true, name: true, publicKeyJwk: true } } },
         },
       },
       orderBy: { updatedAt: 'desc' },
     });
+
     return chats;
   }
 

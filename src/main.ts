@@ -43,11 +43,11 @@ async function bootstrap() {
   const port = configService.get<number>('PORT') || 3000;
 
   await app.listen(port);
-  
+
   console.log(
     `${hasCerts ? 'HTTPS' : 'HTTP'} Server running on port ${port} — Swagger: ${hasCerts ? 'https' : 'http'}://localhost:${port}/docs`,
   );
-  
+
   if (!hasCerts)
     console.warn('⚠️ HTTPS not enabled — cert files not found in', sslKeyPath, sslCertPath);
 }

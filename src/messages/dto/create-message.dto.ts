@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { JsonObject } from '@prisma/client/runtime/library';
 import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreateMessageDto {
@@ -7,8 +8,8 @@ export class CreateMessageDto {
   @IsNotEmpty()
   chatId: string;
 
-  @ApiProperty({ description: 'Текст сообщения' })
+  @ApiProperty({ description: 'Зашифрованное сообщение' })
   @IsString()
   @IsNotEmpty()
-  content: string;
+  encryptedMessage: JsonObject;
 }

@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, UseGuards, Req, Delete, Query } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UseGuards, Req, Query } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiBody, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { MessagesService } from './messages.service';
 import { JwtAuthGuard } from '../auth/jwt.guard';
@@ -24,9 +24,9 @@ export class MessagesController {
   @ApiParam({ name: 'chatId', type: String })
   @ApiResponse({ status: 200, description: 'Сообщения чата' })
   async getMessages(
-    @Req() req: any, 
-    @Param('chatId') chatId: string, 
-    @Query() paginationDto: PaginationDto
+    @Req() req: any,
+    @Param('chatId') chatId: string,
+    @Query() paginationDto: PaginationDto,
   ) {
     return this.messages.getMessages(req.user.userId, chatId, paginationDto);
   }
@@ -45,6 +45,4 @@ export class MessagesController {
   async findOne(@Param('id') id: string) {
     return this.messages.findOne(id);
   }
-
-  
 }

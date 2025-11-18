@@ -8,16 +8,18 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  phone     String    @unique
-  email     String?   @unique
-  password  String
-  name      String?
-  avatar    String?   
-  isOnline  Boolean   @default(false)
-  lastSeen  DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id            String    @id @default(uuid())
+  phone         String    @unique
+  email         String?   @unique
+  password      String
+  name          String?
+  avatar        String?
+  isOnline      Boolean   @default(false)
+  lastSeen      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  publicKeyJwk  Json?
+  privateKeyJwk Json?
 
   // связи
   messages      Message[]         @relation("UserMessages")
@@ -27,6 +29,7 @@ model User {
   chats         ChatParticipant[]
   contacts      Contact[]         @relation("UserContacts")
   contactOf     Contact[]         @relation("ContactOf")
+  privateKeyBackup PrivateKeyBackup?
 }
 
 model Contact {
@@ -61,12 +64,12 @@ model ChatParticipant {
 }
 
 model Message {
-  id              String   @id @default(uuid())
-  content         String
-  deletedSender   Boolean  @default(false)
-  deletedReceiver Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                      String   @id @default(uuid())
+  encryptedMessage        Json   @map("encrypted_message")
+  deletedSender           Boolean  @default(false)
+  deletedReceiver         Boolean  @default(false)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 
   chatId String
   chat   Chat   @relation(fields: [chatId], references: [id])
@@ -102,4 +105,14 @@ enum CallStatus {
   accepted
   rejected
   ended
+}
+
+model PrivateKeyBackup {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  privateKeyJwk Json
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

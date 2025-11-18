@@ -1,5 +1,6 @@
-import { IsString, IsOptional, IsEmail } from 'class-validator';
+import { IsString, IsOptional, IsEmail, IsObject } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import type { JsonWebKey } from '../../types/jwk';
 
 export class RegisterDto {
   @ApiProperty({ example: 'test@example.com', required: false })
@@ -20,4 +21,9 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   name?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsObject()
+  publicKeyJwk?: JsonWebKey;
 }

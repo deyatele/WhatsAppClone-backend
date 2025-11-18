@@ -15,6 +15,7 @@ import { UsersService } from '../users/users.service';
 import { CallsService } from '../calls/calls.service';
 import { MessagesService } from '../messages/messages.service';
 import { CallStatus } from '@prisma/client';
+import { JsonObject } from '@prisma/client/runtime/library';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -64,13 +65,15 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
       const updated = await this.usersService.setOnlineStatus(userId, false);
       this.server.emit('status:update', { userId, isOnline: false, lastSeen: updated.lastSeen });
       console.log(`❌ User disconnected: ${userId} (socketId=${client.id})`);
-      
+
       // Start logging for call termination on disconnect
       console.log(`Attempting to end active calls for disconnected user: ${userId}`);
       try {
         const active = await this.callsService.getActiveCall(userId);
         if (active) {
-          console.log(`Found active call ${active.id} for user ${userId}. Status: ${active.status}`);
+          console.log(
+            `Found active call ${active.id} for user ${userId}. Status: ${active.status}`,
+          );
           const ended = await this.callsService.endCall(active.id, userId);
           [ended.fromId, ended.toId].forEach((id) => {
             this.server.to(id).emit('call:ended', ended);
@@ -81,7 +84,10 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
           console.log(`No active call found for disconnected user: ${userId}`);
         }
       } catch (e) {
-        console.error('Error ending active calls on disconnect', e && e instanceof Error ? e.message : String(e));
+        console.error(
+          'Error ending active calls on disconnect',
+          e && e instanceof Error ? e.message : String(e),
+        );
       }
     } catch (err) {
       console.error('Error on disconnect handling for', userId, err);
@@ -91,7 +97,7 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
   // ================= Сообщения =================
   @SubscribeMessage('message:send')
   async handleSendMessage(
-    @MessageBody() data: { chatId: string; text: string },
+    @MessageBody() data: { chatId: string; text: JsonObject },
     @ConnectedSocket() client: Socket,
   ) {
     const fromId = client.data.userId;
@@ -100,7 +106,7 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
     try {
       const saved = await this.messagesService.sendMessage(fromId, {
         chatId: data.chatId,
-        content: data.text,
+        encryptedMessage: data.text,
       });
 
       this.server.to(data.chatId).emit('message:new', saved);
@@ -108,7 +114,7 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
       client.emit('message:sent', {
         id: saved.id,
         chatId: data.chatId,
-        text: saved.content,
+        text: saved.encryptedMessage,
         createdAt: saved.createdAt,
       });
     } catch (err) {
@@ -120,14 +126,14 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
 
   @SubscribeMessage('message:delete')
   async handleDeleteMessage(
-    @MessageBody() data: { messageId: string, flag?:boolean },
+    @MessageBody() data: { messageId: string; flag?: boolean },
     @ConnectedSocket() client: Socket,
   ) {
     const userId = client.data.userId;
     const flag = data.flag || false;
     if (!userId) return client.emit('ошибка', { message: 'Неавторизованный пользователь' });
     try {
-      console.log('userId',userId, 'data.messageId', data.messageId)
+      console.log('userId', userId, 'data.messageId', data.messageId);
       const deletedMessage = await this.messagesService.deleteMessage(userId, data.messageId, flag);
       this.server.to(deletedMessage.chatId).emit('message:deleted', deletedMessage);
     } catch (err) {
@@ -148,7 +154,9 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
 
     try {
       const call = await this.callsService.startCall(fromId, { to: data.to });
-      this.server.to(data.to).emit('call:incoming', { ...call, sdp: data.sdp, from: fromId, callId: call.id });
+      this.server
+        .to(data.to)
+        .emit('call:incoming', { ...call, sdp: data.sdp, from: fromId, callId: call.id });
       console.log(`Backend emitting call:started with callId: ${call.id} to ${fromId}`); // Added log
       client.emit('call:started', { call, sdp: data.sdp });
       console.log(`📞 call:start from ${fromId} to ${data.to} callId=${call.id}`);
@@ -293,7 +301,6 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
           if (active) {
             await this.callsService.updateCallStatus(active.id, CallStatus.accepted, from);
             console.log(`📞 call ${active.id} marked as accepted due to answer from ${from}`);
-            const updated = await this.callsService.getCalls(active.fromId);
             // notify parties about accepted via business event
             this.server.to(active.fromId).emit('call:accepted', { ...active, from });
             this.server.to(active.toId).emit('call:accepted', { ...active, from });

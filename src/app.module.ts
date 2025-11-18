@@ -11,6 +11,7 @@ import { join } from 'path';
 import { ConfigModule } from '@nestjs/config';
 import { ChatsModule } from './chats/chats.module';
 import { TurnCredentialsModule } from './turn-credentials/turn-credentials.module';
+import { KeysModule } from './keys/keys.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { TurnCredentialsModule } from './turn-credentials/turn-credentials.modul
     GatewayModule,
     PrismaModule,
     TurnCredentialsModule,
+    KeysModule,
   ],
 })
 export class AppModule {}

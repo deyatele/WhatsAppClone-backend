@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMessageDto } from './dto/create-message.dto';
-import { Message, User, Chat, ChatParticipant } from '@prisma/client';
+import { Message, Chat, ChatParticipant } from '@prisma/client';
 import { Exact, SafeUser } from '../types';
 import { PaginationDto } from './dto/pagination.dto';
 
@@ -46,7 +46,7 @@ export class MessagesService {
         data: {
           chatId: dto.chatId,
           senderId: userId,
-          content: dto.content,
+          encryptedMessage: dto.encryptedMessage,
         },
         include: {
           sender: {
@@ -61,7 +61,6 @@ export class MessagesService {
           },
         },
       });
-
       return message;
     } catch (e) {
       throw new BadRequestException(
@@ -113,7 +112,16 @@ export class MessagesService {
       },
       orderBy: { createdAt: 'desc' },
       include: {
-        sender: { select: { id: true, name: true, phone: true, email: true, avatar: true } },
+        sender: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            email: true,
+            avatar: true,
+            publicKeyJwk: true,
+          },
+        },
       },
     });
 
@@ -125,6 +133,7 @@ export class MessagesService {
       }
     }
     const res = { messages: messages, nextCursor };
+    console.log(res);
     return res;
   }
 
@@ -155,12 +164,22 @@ export class MessagesService {
           orderBy: { createdAt: 'desc' },
           take: 1,
           include: {
-            sender: { select: { id: true, name: true, phone: true, email: true, avatar: true } },
+            sender: {
+              select: {
+                id: true,
+                name: true,
+                phone: true,
+                email: true,
+                avatar: true,
+                publicKeyJwk: true,
+              },
+            },
           },
         },
       },
       orderBy: { updatedAt: 'desc' },
     });
+    console.log(chats);
     return chats as ChatWithLastMessageAndParticipants[];
   }
 

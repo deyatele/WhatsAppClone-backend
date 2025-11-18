@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Req } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { TurnCredentialsService } from './turn-credentials.service';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 
@@ -11,6 +11,6 @@ export class TurnCredentialsController {
   @Get(':id')
   @ApiResponse({ status: 200, description: 'TURN credentials for the authenticated user' })
   async getCredentials(@Param('id') id: string) {
-     return await this.turnCredentialsService.getCredentials(id);
+    return await this.turnCredentialsService.getCredentials(id);
   }
 }
