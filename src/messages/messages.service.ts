@@ -133,7 +133,6 @@ export class MessagesService {
       }
     }
     const res = { messages: messages, nextCursor };
-    console.log(res);
     return res;
   }
 
@@ -179,7 +178,6 @@ export class MessagesService {
       },
       orderBy: { updatedAt: 'desc' },
     });
-    console.log(chats);
     return chats as ChatWithLastMessageAndParticipants[];
   }
 

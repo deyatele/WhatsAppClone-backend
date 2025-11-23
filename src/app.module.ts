@@ -1,3 +1,4 @@
+import { validationSchema } from './config.schema';
 import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -15,12 +16,12 @@ import { KeysModule } from './keys/keys.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema,
+    }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
-      // serveStaticOptions: {
-      //   index: 'client.html',
-      // },
     }),
     AuthModule,
     UsersModule,

@@ -5,7 +5,7 @@ import type { JsonWebKey, JsonWebKeyPrivate } from '../types/jwk';
 @Injectable()
 export class JwkValidationPipe implements PipeTransform {
   transform(
-    value: { id: string; publicKeyJwk?: JsonWebKey; privateKeyBackup: JsonWebKeyPrivate },
+    value: { publicKeyJwk: JsonWebKey; privateKeyBackup: JsonWebKeyPrivate },
     metadata: ArgumentMetadata,
   ) {
     if (metadata.type !== 'body') {
@@ -83,7 +83,6 @@ export class JwkValidationPipe implements PipeTransform {
         );
       }
     }
-
     return value;
   }
 }

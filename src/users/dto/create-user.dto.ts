@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsOptional, IsEmail, MinLength, IsObject } from 'class-validator';
+import { Transform } from 'class-transformer';
 import type { JsonWebKey } from '../../types/jwk';
 
 export class CreateUserDto {
@@ -13,11 +14,13 @@ export class CreateUserDto {
   password: string;
 
   @ApiProperty({ description: 'Имя пользователя', required: false })
+  @Transform(({ value }) => (value === '' ? null : value))
   @IsOptional()
   @IsString()
   name?: string;
 
   @ApiProperty({ description: 'Email пользователя', required: false })
+  @Transform(({ value }) => (value === '' ? null : value))
   @IsOptional()
   @IsEmail()
   email?: string;

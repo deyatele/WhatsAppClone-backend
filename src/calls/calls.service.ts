@@ -69,7 +69,6 @@ export class CallsService {
   }
 
   async updateCallStatus(callId: string, status: CallStatus, userId: string) {
-    console.log(callId, status, userId);
     const call = await this.prisma.call.findUnique({ where: { id: callId } });
     if (!call) {
       throw new NotFoundException('Звонок не найден');

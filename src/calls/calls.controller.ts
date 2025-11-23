@@ -39,7 +39,6 @@ export class CallsController {
   })
   async startCall(@Req() req: any, @Body() dto: CreateCallDto) {
     const answer = await this.calls.startCall(req.user.userId, dto);
-    console.log(answer);
     return answer;
   }
 

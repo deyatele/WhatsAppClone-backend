@@ -58,7 +58,8 @@ export class UsersService {
     phone: string;
     password: string;
     name?: string;
-    publicKeyJwk?: Prisma.InputJsonValue | typeof Prisma.JsonNull;
+    publicKeyJwk: Prisma.InputJsonValue;
+    privateKeyJwk: Prisma.InputJsonValue;
   }) {
     if (!data.email && !data.phone) {
       throw new BadRequestException('Требуется email или телефон');
@@ -66,19 +67,25 @@ export class UsersService {
     try {
       const user = await this.prisma.user.create({
         data: {
-          email: data.email ?? '',
+          ...(data.email ? { email: data.email } : {}),
           phone: data.phone,
           password: data.password,
-          name: data.name ?? '',
-          publicKeyJwk: data.publicKeyJwk
-            ? (data.publicKeyJwk as Prisma.InputJsonValue)
-            : Prisma.JsonNull,
+          name: data.name ?? null,
+          publicKeyJwk: data.publicKeyJwk,
+          privateKeyJwk: data.privateKeyJwk,
         },
       });
       return user;
     } catch (e: any) {
       if (e?.code === 'P2002' && e?.meta?.target) {
-        throw new ConflictException(`${e.meta.target.join(', ')} уже используется`);
+        const target: string[] = e.meta.target;
+
+        const targetRep: string = target
+          .join(', ')
+          .replace('phone', 'Телефон')
+          .replace('email', 'Адрес электронной почты');
+
+        throw new ConflictException(`${targetRep} уже используется`);
       }
       throw e;
     }

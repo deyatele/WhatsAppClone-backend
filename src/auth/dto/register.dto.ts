@@ -1,16 +1,18 @@
-import { IsString, IsOptional, IsEmail, IsObject } from 'class-validator';
+import { IsString, IsOptional, IsEmail, IsObject, IsPhoneNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import type { JsonWebKey } from '../../types/jwk';
+import { Transform } from 'class-transformer';
+import type { JsonWebKey, JsonWebKeyPrivate } from '../../types/jwk';
 
 export class RegisterDto {
   @ApiProperty({ example: 'test@example.com', required: false })
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsOptional()
   @IsEmail()
   email?: string;
 
-  @ApiProperty({ example: '+1234567890', required: false })
-  @IsOptional()
+  @ApiProperty({ example: '+79108883355', required: true })
   @IsString()
+  @IsPhoneNumber('RU', { message: 'Не правильный номер телефона' })
   phone: string;
 
   @ApiProperty({ example: 'secret123' })
@@ -18,12 +20,16 @@ export class RegisterDto {
   password: string;
 
   @ApiProperty({ example: 'John Doe', required: false })
+  @Transform(({ value }) => (value === '' ? undefined : value))
   @IsOptional()
   @IsString()
   name?: string;
 
-  @ApiProperty({ required: false })
-  @IsOptional()
+  @ApiProperty({ required: true })
   @IsObject()
-  publicKeyJwk?: JsonWebKey;
+  publicKeyJwk: JsonWebKey;
+
+  @ApiProperty({ required: true })
+  @IsObject()
+  privateKeyJwk: JsonWebKeyPrivate;
 }

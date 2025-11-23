@@ -19,12 +19,13 @@ export class ChatsService {
   async createChat(
     userId: string,
     otherUserId: string,
-  ): Promise<ChatWithParticipantsAndLastMessage> {
+  ): Promise<{ id: string; createdAt: Date; updatedAt: Date }> {
     if (userId === otherUserId) {
       throw new Error('Нельзя создать чат с самим собой');
     }
+    let chat: { id: string; createdAt: Date; updatedAt: Date } | null = null;
 
-    let chat = await this.prisma.chat.findFirst({
+    chat = await this.prisma.chat.findFirst({
       where: {
         participants: {
           every: {
@@ -179,5 +180,31 @@ export class ChatsService {
     }
 
     return this.getChat(chatId);
+  }
+
+  async getInviteChatToken(id: string): Promise<{ id: string }> {
+    if (!id) {
+      throw new Error('Нет пользователя который хочет создать приглашение');
+    }
+    return await this.prisma.inviteToken.create({
+      data: {
+        userId: id,
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+
+  async getUserInviteChat(token: string): Promise<{ userId: string }> {
+    if (!token) throw new Error('Нет инвайт токена');
+    const userId = await this.prisma.inviteToken.findUnique({
+      where: { id: token },
+      select: {
+        userId: true,
+      },
+    });
+    if (!userId) throw new Error('Токен не валидный');
+    return userId;
   }
 }

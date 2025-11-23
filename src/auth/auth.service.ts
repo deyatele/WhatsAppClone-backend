@@ -66,15 +66,13 @@ export class AuthService {
 
   async register(dto: RegisterDto): Promise<SafeUser> {
     const hashedPassword = await bcrypt.hash(dto.password, 10);
-
     const newUser = await this.usersService.create({
       email: dto.email ?? '',
       phone: dto.phone,
       password: hashedPassword,
       name: dto.name ?? '',
-      publicKeyJwk: dto.publicKeyJwk
-        ? (dto.publicKeyJwk as Prisma.InputJsonValue)
-        : Prisma.JsonNull,
+      publicKeyJwk: dto.publicKeyJwk as Prisma.InputJsonValue,
+      privateKeyJwk: dto.privateKeyJwk as Prisma.InputJsonValue,
     });
 
     return newUser;
@@ -124,5 +122,18 @@ export class AuthService {
     const result = await bcrypt.compare(password, user.password);
     if (!result) throw new UnauthorizedException('Пароль не верный');
     return result;
+  }
+
+  async verifyUser(token: string): Promise<SafeUser> {
+    try {
+      const payload = await this.jwtService.verifyAsync<{ sub: string }>(token);
+      const user = await this.usersService.findById(payload.sub);
+      if (!user) {
+        throw new UnauthorizedException('Пользователь из токена не найден.');
+      }
+      return user;
+    } catch {
+      throw new UnauthorizedException('Невалидный или просроченный токен.');
+    }
   }
 }

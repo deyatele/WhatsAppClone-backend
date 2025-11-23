@@ -22,14 +22,13 @@ model User {
   privateKeyJwk Json?
 
   // связи
-  messages      Message[]         @relation("UserMessages")
-  callsFrom     Call[]            @relation("CallFrom")
-  callsTo       Call[]            @relation("CallTo")
-  refreshTokens RefreshToken[]
-  chats         ChatParticipant[]
-  contacts      Contact[]         @relation("UserContacts")
-  contactOf     Contact[]         @relation("ContactOf")
-  privateKeyBackup PrivateKeyBackup?
+  messages         Message[]         @relation("UserMessages")
+  callsFrom        Call[]            @relation("CallFrom")
+  callsTo          Call[]            @relation("CallTo")
+  refreshTokens    RefreshToken[]
+  chats            ChatParticipant[]
+  contacts         Contact[]         @relation("UserContacts")
+  contactOf        Contact[]         @relation("ContactOf")
 }
 
 model Contact {
@@ -64,12 +63,12 @@ model ChatParticipant {
 }
 
 model Message {
-  id                      String   @id @default(uuid())
-  encryptedMessage        Json   @map("encrypted_message")
-  deletedSender           Boolean  @default(false)
-  deletedReceiver         Boolean  @default(false)
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  id               String   @id @default(uuid())
+  encryptedMessage Json     @map("encrypted_message")
+  deletedSender    Boolean  @default(false)
+  deletedReceiver  Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   chatId String
   chat   Chat   @relation(fields: [chatId], references: [id])
@@ -95,7 +94,7 @@ model RefreshToken {
   id        String   @id @default(uuid())
   token     String   @unique
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
 }
@@ -107,12 +106,11 @@ enum CallStatus {
   ended
 }
 
-model PrivateKeyBackup {
-  id            String   @id @default(uuid())
-  userId        String   @unique
-  privateKeyJwk Json
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+model InviteToken {
+  id        String   @id @default(nanoid())
+  userId    String   
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

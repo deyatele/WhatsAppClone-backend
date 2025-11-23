@@ -100,4 +100,34 @@ export class ChatsController {
   async joinChat(@Req() req: any, @Body() dto: JoinChatDto) {
     return this.chats.joinChat(req.user.userId, dto.chatId);
   }
+
+  @Get('invite')
+  @UseGuards(JwtAuthGuard)
+  @ApiResponse({
+    status: 201,
+    description: 'Инвайт для добавления пользователя',
+    schema: {
+      example: {
+        token: 'uIqXwZcRfDj8EbL4YvF2m',
+      },
+    },
+  })
+  async inviteChatToken(@Req() req: any) {
+    return this.chats.getInviteChatToken(req.user.userId);
+  }
+
+  @Post('invite')
+  @UseGuards(JwtAuthGuard)
+  @ApiResponse({
+    status: 200,
+    description: 'Получение данных пользователя по инвайт токену',
+    schema: {
+      example: {
+        userId: 'uIqXwZcRfDj8EbL4YvF2m',
+      },
+    },
+  })
+  async getUserInviteChat(@Req() req: any, @Body() dto: { token: string }) {
+    return this.chats.getUserInviteChat(dto.token);
+  }
 }
