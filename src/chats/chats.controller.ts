@@ -16,7 +16,7 @@ export class ChatsController {
   @ApiBody({ type: CreateChatDto })
   @ApiResponse({
     status: 201,
-    description: 'Чат создан или возвращён существующий',
+    description: 'Чат создан или возвращается ошибка',
     schema: {
       example: {
         id: '11d0300b-3eb3-4ce3-83d7-0378c5bd4409',
@@ -46,8 +46,29 @@ export class ChatsController {
       },
     },
   })
+  @ApiResponse({
+    status: 400,
+    description: 'Ошибка валидации (например, попытка создать чат с собой)',
+    schema: {
+      example: {
+        error: 'self_chat_forbidden',
+        message: 'Нельзя создать чат с самим собой',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Чат уже существует',
+    schema: {
+      example: {
+        error: 'chat_already_exists',
+        message: 'Чат уже создан',
+        chatId: '11d0300b-3eb3-4ce3-83d7-0378c5bd4409',
+      },
+    },
+  })
   async createChat(@Req() req: any, @Body() dto: CreateChatDto) {
-    return this.chats.createChat(req.user.userId, dto.userId);
+    return await this.chats.createChat(req.user.userId, dto.userId, dto.inviteToken);
   }
 
   @Get('my')

@@ -11,7 +11,7 @@
     "skipLibCheck": true,
     "outDir": "dist",
     "sourceMap": true,
-    "rootDir": "./src",
+    "rootDir": ".",
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": false,
     "experimentalDecorators": true

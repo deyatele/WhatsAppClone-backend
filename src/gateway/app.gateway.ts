@@ -14,11 +14,12 @@ import { UsersService } from '../users/users.service';
 import { CallsService } from '../calls/calls.service';
 import { MessagesService } from '../messages/messages.service';
 import { CallStatus } from '@prisma/client';
-import { JsonObject } from '@prisma/client/runtime/library';
+import { JsonValue } from '../types';
 import { WsJwtGuard } from '../common/guards/ws-jwt.guard';
 import { WsExceptionFilter } from '../common/filters/ws-exception.filter';
 import type { SafeUser } from '../types';
 import { AuthService } from '../auth/auth.service';
+import { ChatsService } from '../chats/chats.service';
 
 @UseGuards(WsJwtGuard)
 @UseFilters(new WsExceptionFilter())
@@ -34,6 +35,7 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
     private readonly usersService: UsersService,
     private readonly callsService: CallsService,
     private readonly messagesService: MessagesService,
+    private readonly chatsService: ChatsService,
   ) {}
 
   afterInit() {}
@@ -99,7 +101,7 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
   // ================= Сообщения =================
   @SubscribeMessage('message:send')
   async handleSendMessage(
-    @MessageBody() data: { chatId: string; text: JsonObject },
+    @MessageBody() data: { chatId: string; text: JsonValue },
     @ConnectedSocket() client: Socket & { data: { user: SafeUser } },
   ) {
     const fromId = client.data.user.id;
@@ -220,5 +222,14 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
   ) {
     client.join(data.chatId);
     client.emit('chat:joined', { chatId: data.chatId });
+  }
+
+  @SubscribeMessage('chat:create')
+  async handleCreateChat(
+    @MessageBody() data: { to: string; chatId: string },
+    @ConnectedSocket() client: Socket & { data: { user: SafeUser } },
+  ) {
+    const chat = await this.chatsService.getChat(data.chatId, client.data.user.id);
+    this.server.to(data.to).emit('chat:created', { chat });
   }
 }

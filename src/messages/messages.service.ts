@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMessageDto } from './dto/create-message.dto';
-import { Message, Chat, ChatParticipant } from '@prisma/client';
+import { Message, Chat, ChatParticipant, Prisma } from '@prisma/client';
 import { Exact, SafeUser } from '../types';
 import { PaginationDto } from './dto/pagination.dto';
 
@@ -46,7 +46,7 @@ export class MessagesService {
         data: {
           chatId: dto.chatId,
           senderId: userId,
-          encryptedMessage: dto.encryptedMessage,
+          encryptedMessage: dto.encryptedMessage === null ? Prisma.JsonNull : dto.encryptedMessage,
         },
         include: {
           sender: {
@@ -61,7 +61,7 @@ export class MessagesService {
           },
         },
       });
-      return message;
+      return message as MessageWithSenderAndChat;
     } catch (e) {
       throw new BadRequestException(
         e instanceof Error ? e.message : 'Ошибка при создании сообщения',

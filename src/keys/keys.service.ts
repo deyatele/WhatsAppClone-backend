@@ -13,15 +13,13 @@ export class KeysService {
     return user ? { publicKeyJwk: user.publicKeyJwk } : null;
   }
 
-  async getPrivateKeyBackup(userId: string) {
-    return this.prisma.privateKeyBackup.findUnique({
-      where: { userId },
+  async getKeysBackup(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { publicKeyJwk: true, privateKeyJwk: true, id: true },
     });
-  }
-
-  async deletePrivateKeyBackup(userId: string) {
-    return this.prisma.privateKeyBackup.delete({
-      where: { userId },
-    });
+    return user
+      ? { publicKeyJwk: user.publicKeyJwk, privateKeyJwk: user.privateKeyJwk, id: user.id }
+      : null;
   }
 }

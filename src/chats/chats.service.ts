@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Chat, ChatParticipant, Message } from '@prisma/client';
 import type { SafeUser } from '../types';
@@ -18,11 +18,41 @@ export class ChatsService {
 
   async createChat(
     userId: string,
-    otherUserId: string,
-  ): Promise<{ id: string; createdAt: Date; updatedAt: Date }> {
-    if (userId === otherUserId) {
-      throw new Error('Нельзя создать чат с самим собой');
+    otherUserId: string | null,
+    inviteToken: string | null,
+  ): Promise<
+    | { id: string; createdAt: Date; updatedAt: Date }
+    | { error: string; message: string }
+    | undefined
+  > {
+    if (inviteToken) {
+      const tokenExist = await this.prisma.inviteToken.findUnique({
+        where: {
+          id: inviteToken,
+        },
+      });
+      if (tokenExist) {
+        await this.prisma.inviteToken.delete({
+          where: {
+            id: tokenExist.id,
+          },
+        });
+      }
     }
+    if (!otherUserId) {
+      throw new HttpException('Участник не указан', HttpStatus.BAD_REQUEST);
+    }
+
+    if (userId === otherUserId) {
+      throw new HttpException(
+        {
+          error: 'self_chat_forbidden',
+          message: 'Нельзя создать чат с самим собой',
+        },
+        HttpStatus.BAD_REQUEST, // 400
+      );
+    }
+
     let chat: { id: string; createdAt: Date; updatedAt: Date } | null = null;
 
     chat = await this.prisma.chat.findFirst({
@@ -53,6 +83,17 @@ export class ChatsService {
       },
     });
 
+    if (chat) {
+      throw new HttpException(
+        {
+          error: 'chat_already_exists',
+          message: 'Чат уже создан',
+          chatId: chat.id,
+        },
+        HttpStatus.CONFLICT,
+      );
+    }
+
     if (!chat) {
       chat = await this.prisma.chat.create({
         data: {
@@ -67,18 +108,7 @@ export class ChatsService {
                 select: {
                   id: true,
                   name: true,
-                },
-              },
-            },
-          },
-          messages: {
-            orderBy: { createdAt: 'desc' },
-            take: 1,
-            include: {
-              sender: {
-                select: {
-                  id: true,
-                  name: true,
+                  publicKeyJwk: true,
                 },
               },
             },
@@ -86,7 +116,6 @@ export class ChatsService {
         },
       });
     }
-
     return chat;
   }
 
@@ -125,25 +154,32 @@ export class ChatsService {
     return chats;
   }
 
-  async getChat(chatId: string): Promise<ChatWithParticipantsAndLastMessage | null> {
+  async getChat(
+    chatId: string,
+    userId: string,
+  ): Promise<ChatWithParticipantsAndLastMessage | null> {
     return this.prisma.chat.findUnique({
       where: { id: chatId },
       include: {
         participants: {
-          include: {
-            user: {
-              select: { id: true, name: true },
-            },
-          },
+          include: { user: { select: { id: true, name: true, avatar: true, publicKeyJwk: true } } },
         },
         messages: {
+          where: {
+            OR: [
+              {
+                senderId: userId,
+                deletedSender: false,
+              },
+              {
+                senderId: { not: userId },
+                deletedReceiver: false,
+              },
+            ],
+          },
           orderBy: { createdAt: 'desc' },
           take: 1,
-          include: {
-            sender: {
-              select: { id: true, name: true },
-            },
-          },
+          include: { sender: { select: { id: true, name: true, publicKeyJwk: true } } },
         },
       },
     });
@@ -179,7 +215,7 @@ export class ChatsService {
       });
     }
 
-    return this.getChat(chatId);
+    return this.getChat(chatId, userId);
   }
 
   async getInviteChatToken(id: string): Promise<{ id: string }> {

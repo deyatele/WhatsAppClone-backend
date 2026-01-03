@@ -4,31 +4,28 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
-  id            String    @id @default(uuid())
-  phone         String    @unique
-  email         String?   @unique
+  id            String            @id @default(uuid())
+  phone         String            @unique
+  email         String?           @unique
   password      String
   name          String?
-  avatar        String?
-  isOnline      Boolean   @default(false)
+  isOnline      Boolean           @default(false)
   lastSeen      DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  avatar        String?
   publicKeyJwk  Json?
   privateKeyJwk Json?
-
-  // связи
-  messages         Message[]         @relation("UserMessages")
-  callsFrom        Call[]            @relation("CallFrom")
-  callsTo          Call[]            @relation("CallTo")
-  refreshTokens    RefreshToken[]
-  chats            ChatParticipant[]
-  contacts         Contact[]         @relation("UserContacts")
-  contactOf        Contact[]         @relation("ContactOf")
+  callsFrom     Call[]            @relation("CallFrom")
+  callsTo       Call[]            @relation("CallTo")
+  chats         ChatParticipant[]
+  contactOf     Contact[]         @relation("ContactOf")
+  contacts      Contact[]         @relation("UserContacts")
+  messages      Message[]         @relation("UserMessages")
+  refreshTokens RefreshToken[]
 }
 
 model Contact {
@@ -36,9 +33,8 @@ model Contact {
   ownerId   String
   contactId String
   createdAt DateTime @default(now())
-
-  owner   User @relation("UserContacts", fields: [ownerId], references: [id], onDelete: Cascade)
-  contact User @relation("ContactOf", fields: [contactId], references: [id], onDelete: Cascade)
+  contact   User     @relation("ContactOf", fields: [contactId], references: [id], onDelete: Cascade)
+  owner     User     @relation("UserContacts", fields: [ownerId], references: [id], onDelete: Cascade)
 
   @@unique([ownerId, contactId])
 }
@@ -55,26 +51,23 @@ model ChatParticipant {
   id     String @id @default(uuid())
   chatId String
   userId String
-
-  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chat   Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([chatId, userId])
 }
 
 model Message {
   id               String   @id @default(uuid())
-  encryptedMessage Json     @map("encrypted_message")
-  deletedSender    Boolean  @default(false)
-  deletedReceiver  Boolean  @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
-
-  chatId String
-  chat   Chat   @relation(fields: [chatId], references: [id])
-
-  senderId String
-  sender   User   @relation("UserMessages", fields: [senderId], references: [id])
+  chatId           String
+  senderId         String
+  deletedReceiver  Boolean  @default(false)
+  deletedSender    Boolean  @default(false)
+  encryptedMessage Json?    @map("encrypted_message")
+  chat             Chat     @relation(fields: [chatId], references: [id])
+  sender           User     @relation("UserMessages", fields: [senderId], references: [id])
 }
 
 model Call {
@@ -82,21 +75,26 @@ model Call {
   status    CallStatus @default(pending)
   startedAt DateTime   @default(now())
   endedAt   DateTime?
-
-  fromId String
-  from   User   @relation("CallFrom", fields: [fromId], references: [id])
-
-  toId String
-  to   User   @relation("CallTo", fields: [toId], references: [id])
+  fromId    String
+  toId      String
+  from      User       @relation("CallFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to        User       @relation("CallTo", fields: [toId], references: [id], onDelete: Cascade)
 }
 
 model RefreshToken {
   id        String   @id @default(uuid())
   token     String   @unique
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model InviteToken {
+  id        String   @id @default(nanoid())
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum CallStatus {
@@ -104,13 +102,4 @@ enum CallStatus {
   accepted
   rejected
   ended
-}
-
-
-
-model InviteToken {
-  id        String   @id @default(nanoid())
-  userId    String   
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }

@@ -5,9 +5,10 @@ import { AuthModule } from '../auth/auth.module';
 import { UsersModule } from '../users/users.module';
 import { CallsModule } from '../calls/calls.module';
 import { MessagesModule } from '../messages/messages.module';
+import { ChatsModule } from '../chats/chats.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, CallsModule, MessagesModule],
+  imports: [AuthModule, UsersModule, CallsModule, MessagesModule, ChatsModule],
   providers: [AppGateway],
   controllers: [GatewayDocsController],
   exports: [AppGateway],
