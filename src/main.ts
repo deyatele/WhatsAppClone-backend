@@ -21,11 +21,20 @@ async function bootstrap() {
         cert: fs.readFileSync(sslCertPath),
       }
     : undefined;
-
-  const app = await NestFactory.create<NestExpressApplication>(
-    AppModule,
-    httpsOptions ? { httpsOptions } : {},
-  );
+  console.log(process.env.TS_NODE_ENV);
+  const silentLogger = {
+    log: () => {},
+    error: () => {},
+    warn: () => {},
+    debug: () => {},
+    verbose: () => {},
+    info: () => {},
+  };
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    httpsOptions: httpsOptions ? httpsOptions : {},
+    logger: silentLogger,
+  });
+  app.useLogger(false);
 
   app.enableCors({ origin: true, credentials: true });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
