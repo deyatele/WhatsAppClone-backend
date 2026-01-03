@@ -23,7 +23,12 @@ import { ChatsService } from '../chats/chats.service';
 
 @UseGuards(WsJwtGuard)
 @UseFilters(new WsExceptionFilter())
-@WebSocketGateway({ cors: { origin: '*' } })
+@WebSocketGateway({
+  cors: {
+    origin: process.env.FRONTEND_URL || 'https://localhost:3000',
+    credentials: true,
+  },
+})
 export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;

@@ -21,7 +21,6 @@ async function bootstrap() {
         cert: fs.readFileSync(sslCertPath),
       }
     : undefined;
-  console.log(process.env.TS_NODE_ENV);
   const silentLogger = {
     log: () => {},
     error: () => {},
@@ -34,30 +33,34 @@ async function bootstrap() {
     httpsOptions: httpsOptions ? httpsOptions : {},
     logger: silentLogger,
   });
-  app.useLogger(false);
 
-  app.enableCors({ origin: true, credentials: true });
+  const corsOptions = {
+    origin: process.env.FRONTEND_URL || 'https://localhost:3000',
+    credentials: true,
+  };
+  app.enableCors(corsOptions);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(new HttpExceptionFilter());
-
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('WhatsApp-like API')
-    .setDescription('API for WhatsApp-like app (NestJS + Prisma + Socket.IO)')
-    .setVersion('1.0')
-    .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'access-token')
-    .build();
-
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('docs', app, document);
-
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || 3000;
 
-  await app.listen(port);
+  // Swagger документация только для разработки
+  if (process.env.NODE_ENV !== 'production') {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('Расскажи и ...')
+      .setDescription('API Расскажи и ... app (NestJS + Prisma + Socket.IO)')
+      .setVersion('1.0')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'access-token')
+      .build();
 
-  console.log(
-    `${hasCerts ? 'HTTPS' : 'HTTP'} Server running on port ${port} — Swagger: ${hasCerts ? 'https' : 'http'}://localhost:${port}/docs`,
-  );
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('docs', app, document);
+    console.log(
+      `${hasCerts ? 'HTTPS' : 'HTTP'} Server running on port ${port} — Swagger: ${hasCerts ? 'https' : 'http'}://localhost:${port}/docs`,
+    );
+  }
+
+  await app.listen(port);
 
   if (!hasCerts)
     console.warn('⚠️ HTTPS not enabled — cert files not found in', sslKeyPath, sslCertPath);

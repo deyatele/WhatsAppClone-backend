@@ -6,6 +6,7 @@ export const validationSchema = Joi.object({
 
   // Приложение
   PORT: Joi.number().default(3000),
+  NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
 
   // JWT
   JWT_SECRET: Joi.string().required(),
@@ -13,6 +14,9 @@ export const validationSchema = Joi.object({
 
   // TURN-сервер
   TURN_PROVIDER_URL: Joi.string().uri().required(),
+
+  // CORS
+  FRONTEND_URL: Joi.string().uri().optional().default('https://localhost:3000'),
 
   // SSL (опционально)
   SSL_KEY_PATH: Joi.string().optional(),
