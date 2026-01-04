@@ -1,22 +1,24 @@
 FROM node:22-alpine AS builder
-
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+RUN npm install       
+
+COPY prisma/ ./prisma/
+RUN npx prisma generate
 
 COPY . .
 RUN npm run build
 
+# Финальный этап
 FROM node:22-alpine
-
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --omit=dev
+RUN npm install --omit=dev --prefer-offline    
 
 COPY --from=builder /app/dist ./dist
 
-EXPOSE 3001
 
+EXPOSE 3001
 CMD ["node", "dist/main.js"]
