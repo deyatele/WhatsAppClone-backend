@@ -4,10 +4,10 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install       
 
-COPY prisma/ ./prisma/
+COPY . .
+
 RUN npx prisma generate
 
-COPY . .
 RUN npm run build
 
 # Финальный этап
@@ -21,4 +21,4 @@ COPY --from=builder /app/dist ./dist
 
 
 EXPOSE 3001
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]
