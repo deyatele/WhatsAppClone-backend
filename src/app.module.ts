@@ -13,6 +13,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ChatsModule } from './chats/chats.module';
 import { TurnCredentialsModule } from './turn-credentials/turn-credentials.module';
 import { KeysModule } from './keys/keys.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { KeysModule } from './keys/keys.module';
     PrismaModule,
     TurnCredentialsModule,
     KeysModule,
+    HealthModule,
   ],
 })
 export class AppModule {}

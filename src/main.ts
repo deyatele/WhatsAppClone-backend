@@ -10,17 +10,24 @@ import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const sslKeyPath = process.env.SSL_KEY_PATH || path.join(process.cwd(), 'certs', 'key.pem');
-  const sslCertPath = process.env.SSL_CERT_PATH || path.join(process.cwd(), 'certs', 'cert.pem');
+  const isProduction = process.env.NODE_ENV === 'production';
 
-  const hasCerts = fs.existsSync(sslKeyPath) && fs.existsSync(sslCertPath);
+  let httpsOptions = {};
+  if (!isProduction) {
+    const sslKeyPath = process.env.SSL_KEY_PATH || path.join(process.cwd(), 'certs', 'key.pem');
+    const sslCertPath = process.env.SSL_CERT_PATH || path.join(process.cwd(), 'certs', 'cert.pem');
 
-  const httpsOptions = hasCerts
-    ? {
+    const hasCerts = fs.existsSync(sslKeyPath) && fs.existsSync(sslCertPath);
+
+    if (hasCerts) {
+      httpsOptions = {
         key: fs.readFileSync(sslKeyPath),
         cert: fs.readFileSync(sslCertPath),
-      }
-    : undefined;
+      };
+    } else {
+      console.warn('⚠️ HTTPS not enabled — cert files not found in', sslKeyPath, sslCertPath);
+    }
+  }
   const silentLogger = {
     log: () => {},
     error: () => {},
@@ -30,7 +37,7 @@ async function bootstrap() {
     info: () => {},
   };
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    httpsOptions: httpsOptions ? httpsOptions : {},
+    httpsOptions: httpsOptions,
     logger: silentLogger,
   });
 
@@ -45,7 +52,7 @@ async function bootstrap() {
   const port = configService.get<number>('PORT') || 3000;
 
   // Swagger документация только для разработки
-  if (process.env.NODE_ENV !== 'production') {
+  if (!isProduction) {
     const swaggerConfig = new DocumentBuilder()
       .setTitle('Расскажи и ...')
       .setDescription('API Расскажи и ... app (NestJS + Prisma + Socket.IO)')
@@ -56,14 +63,11 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup('docs', app, document);
     console.log(
-      `${hasCerts ? 'HTTPS' : 'HTTP'} Server running on port ${port} — Swagger: ${hasCerts ? 'https' : 'http'}://localhost:${port}/docs`,
+      `${httpsOptions ? 'HTTPS' : 'HTTP'} Server running on port ${port} — Swagger: ${httpsOptions ? 'https' : 'http'}://localhost:${port}/docs`,
     );
   }
 
   await app.listen(port);
-
-  if (!hasCerts)
-    console.warn('⚠️ HTTPS not enabled — cert files not found in', sslKeyPath, sslCertPath);
 }
 
 bootstrap();
