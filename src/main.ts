@@ -28,13 +28,13 @@ async function bootstrap() {
       console.warn('⚠️ HTTPS not enabled — cert files not found in', sslKeyPath, sslCertPath);
     }
   }
-  const silentLogger = {
+  /* const silentLogger = {
     log: () => {},
     error: () => {},
     warn: () => {},
     debug: () => {},
     verbose: () => {},
-  };
+  }; */
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     httpsOptions: httpsOptions,
     // logger: silentLogger,
@@ -50,9 +50,7 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || 3000;
-  app.get('/test', (req, res) => {
-    res.send('OK');
-  });
+
   // Swagger документация только для разработки
   if (!isProduction) {
     const swaggerConfig = new DocumentBuilder()
@@ -69,7 +67,7 @@ async function bootstrap() {
     );
   }
 
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 }
 
 bootstrap();
