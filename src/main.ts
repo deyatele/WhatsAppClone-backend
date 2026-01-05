@@ -36,10 +36,13 @@ async function bootstrap() {
     verbose: () => {},
   }; */
 
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    httpsOptions: httpsOptions,
-    // logger: silentLogger,
-  });
+  let appOptions: any = {};
+  if (Object.keys(httpsOptions).length > 0) {
+    appOptions.httpsOptions = httpsOptions;
+  }
+
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, appOptions);
+  // logger: silentLogger,
   const corsOptions = {
     origin: process.env.FRONTEND_URL
       ? process.env.FRONTEND_URL.split(',').map((url) => url.trim())
@@ -48,9 +51,9 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   };
   app.setGlobalPrefix('api');
-  //app.enableCors(corsOptions);
-  // app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-  // app.useGlobalFilters(new HttpExceptionFilter());
+  app.enableCors(corsOptions);
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  app.useGlobalFilters(new HttpExceptionFilter());
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || 3000;
 
