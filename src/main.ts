@@ -45,6 +45,7 @@ async function bootstrap() {
     origin: process.env.FRONTEND_URL || 'https://localhost:3000',
     credentials: true,
   };
+  app.setGlobalPrefix('api');
   app.enableCors(corsOptions);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(new HttpExceptionFilter());
