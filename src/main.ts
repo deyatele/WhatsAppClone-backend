@@ -34,11 +34,10 @@ async function bootstrap() {
     warn: () => {},
     debug: () => {},
     verbose: () => {},
-    info: () => {},
   };
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     httpsOptions: httpsOptions,
-    logger: silentLogger,
+    // logger: silentLogger,
   });
 
   const corsOptions = {
