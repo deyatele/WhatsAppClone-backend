@@ -46,8 +46,8 @@ async function bootstrap() {
   };
   app.setGlobalPrefix('api');
   app.enableCors(corsOptions);
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-  app.useGlobalFilters(new HttpExceptionFilter());
+  // app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  // app.useGlobalFilters(new HttpExceptionFilter());
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || 3000;
 
