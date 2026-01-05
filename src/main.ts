@@ -41,7 +41,7 @@ async function bootstrap() {
   });
 
   const corsOptions = {
-    origin: process.env.FRONTEND_URL || 'https://localhost:3000',
+    origin: process.env.FRONTEND_URL || 'https://localhost',
     credentials: true,
   };
   app.setGlobalPrefix('api');
@@ -50,7 +50,9 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || 3000;
-
+  app.get('/test', (req, res) => {
+    res.send('OK');
+  });
   // Swagger документация только для разработки
   if (!isProduction) {
     const swaggerConfig = new DocumentBuilder()
