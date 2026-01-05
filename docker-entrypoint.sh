@@ -1,14 +1,18 @@
 #!/bin/sh
 set -e
 
-echo "Checking environment..."
+echo "Starting Entrypoint..."
+
+# Проверка наличия переменной (выведет только длину строки для безопасности)
 if [ -z "$DATABASE_URL" ]; then
-  echo "ERROR: DATABASE_URL is not set!"
+  echo "Error: DATABASE_URL is not set!"
   exit 1
+else
+  echo "DATABASE_URL is detected (length: ${#DATABASE_URL})"
 fi
 
 echo "Pushing database schema..."
 npx prisma db push --accept-data-loss
 
-echo "Starting app..."
+echo "Starting application..."
 exec "$@"
