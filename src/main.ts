@@ -41,8 +41,11 @@ async function bootstrap() {
   });
 
   const corsOptions = {
-    origin: process.env.FRONTEND_URL || 'https://localhost',
+    origin: process.env.FRONTEND_URL
+      ? process.env.FRONTEND_URL.split(',')
+      : ['http://localhost:3000'],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   };
   app.setGlobalPrefix('api');
   app.enableCors(corsOptions);
