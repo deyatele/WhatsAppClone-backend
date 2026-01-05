@@ -1,14 +1,13 @@
-import { Controller, Get, Res } from '@nestjs/common';
-import { Response } from 'express';
+import { Controller, Get } from '@nestjs/common';
 
 @Controller('health')
 export class HealthController {
   @Get()
-  async getHealth(@Res() res: Response) {
+  async getHealth() {
     console.log('Health check called!');
-    res.status(200).json({
+    return {
       status: 'ok',
       timestamp: new Date().toISOString(),
-    });
+    };
   }
 }
