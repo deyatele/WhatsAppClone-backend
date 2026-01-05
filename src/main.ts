@@ -35,14 +35,14 @@ async function bootstrap() {
     debug: () => {},
     verbose: () => {},
   }; */
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     httpsOptions: httpsOptions,
     // logger: silentLogger,
   });
-
   const corsOptions = {
     origin: process.env.FRONTEND_URL
-      ? process.env.FRONTEND_URL.split(',')
+      ? process.env.FRONTEND_URL.split(',').map((url) => url.trim())
       : ['http://localhost:3000'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

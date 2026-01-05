@@ -16,7 +16,14 @@ export const validationSchema = Joi.object({
   TURN_PROVIDER_URL: Joi.string().uri().required(),
 
   // CORS
-  FRONTEND_URL: Joi.string().uri().optional().default('https://localhost:3000'),
+  FRONTEND_URL: Joi.string()
+    .pattern(/^(https?:\/\/[^\s,]+)(\s*,\s*https?:\/\/[^\s,]+)*$/)
+    .optional()
+    .default('https://localhost:3000')
+    .messages({
+      'string.pattern.base':
+        'FRONTEND_URL must contain valid HTTP/HTTPS URLs separated by commas or spaces',
+    }),
 
   // SSL (опционально)
   SSL_KEY_PATH: Joi.string().optional(),
