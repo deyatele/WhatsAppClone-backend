@@ -22,7 +22,6 @@ COPY package*.json ./
 RUN npm install --omit=dev --prefer-offline    
 
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/.prisma/client ./dist/.prisma/client
 
 EXPOSE 3001
 CMD ["node", "dist/src/main.js"]
