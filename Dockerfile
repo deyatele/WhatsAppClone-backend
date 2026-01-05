@@ -24,24 +24,17 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Создаем пользователя
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nestjs
-
-# Копируем результаты сборки и скрипт
+# Копируем всё необходимое
 COPY --from=builder /app/dist ./dist
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/prisma ./prisma
+# !!! ВАЖНО: копируем файл конфигурации, если он в корне
+COPY prisma.config.ts ./ 
 COPY package*.json ./
 COPY docker-entrypoint.sh ./
 
-# Даем права на выполнение скрипта
 RUN chmod +x docker-entrypoint.sh
-
-# Переключаемся на пользователя (важно: скрипт будет запущен от него)
 USER nestjs
-
-EXPOSE 3001
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["node", "dist/src/main.js"]

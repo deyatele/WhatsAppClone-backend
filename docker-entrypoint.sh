@@ -1,9 +1,14 @@
 #!/bin/sh
 set -e
 
+echo "Checking environment..."
+if [ -z "$DATABASE_URL" ]; then
+  echo "ERROR: DATABASE_URL is not set!"
+  exit 1
+fi
+
 echo "Pushing database schema..."
-# --accept-data-loss нужен, если вы меняете схему так, что это требует удаления данных
 npx prisma db push --accept-data-loss
 
-echo "Starting application..."
+echo "Starting app..."
 exec "$@"
