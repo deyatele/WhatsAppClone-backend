@@ -14,8 +14,13 @@
     "rootDir": ".",
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": false,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "baseUrl": "./",
+    "paths": {
+      "@prisma/client": [".prisma/client"]
+    }
   },
+  "include": ["src/**/*", ".prisma/client/**/*"],
 
   "exclude": ["node_modules", "dist"]
 }
