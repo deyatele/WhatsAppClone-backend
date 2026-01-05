@@ -48,7 +48,7 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   };
   app.setGlobalPrefix('api');
-  app.enableCors(corsOptions);
+  //app.enableCors(corsOptions);
   // app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   // app.useGlobalFilters(new HttpExceptionFilter());
   const configService = app.get(ConfigService);
