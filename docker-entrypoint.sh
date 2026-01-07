@@ -3,16 +3,16 @@ set -e
 
 echo "Starting Entrypoint..."
 
-# Проверка наличия переменной (выведет только длину строки для безопасности)
 if [ -z "$DATABASE_URL" ]; then
   echo "Error: DATABASE_URL is not set!"
   exit 1
-else
-  echo "DATABASE_URL is detected (length: ${#DATABASE_URL})"
 fi
-
+export DATABASE_URL=$DATABASE_URL
+# Опционально: ожидание доступности порта базы данных (нужен nc/netcat, который обычно есть в alpine)
+# Попробуем просто выполнить команду Prisma с несколькими попытками, если нужно
 echo "Pushing database schema..."
 npx prisma db push --accept-data-loss
 
 echo "Starting application..."
+# exec "$@" выполнит команду из CMD в Dockerfile: ["node", "dist/src/main.js"]
 exec "$@"

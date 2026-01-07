@@ -28,18 +28,12 @@ async function bootstrap() {
       console.warn('⚠️ HTTPS not enabled — cert files not found in', sslKeyPath, sslCertPath);
     }
   }
-  /* const silentLogger = {
-    log: () => {},
-    error: () => {},
-    warn: () => {},
-    debug: () => {},
-    verbose: () => {},
-  }; */
 
   let appOptions: any = {};
   if (Object.keys(httpsOptions).length > 0) {
     appOptions.httpsOptions = httpsOptions;
   }
+  appOptions.logger = isProduction ? ['error', 'warn'] : undefined;
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, appOptions);
   // logger: silentLogger,
