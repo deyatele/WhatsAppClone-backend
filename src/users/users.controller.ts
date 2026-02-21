@@ -28,11 +28,11 @@ import { JsonWebKey } from '../types/jwk';
 export class UsersController {
   constructor(private readonly users: UsersService) {}
 
-  // @Get()
-  // @ApiResponse({ status: 200, description: 'Список всех пользователей' })
-  // async getAll(): Promise<SafeUser[]> {
-  //   return this.users.findAll();
-  // }
+  @Get()
+  @ApiResponse({ status: 200, description: 'Список всех пользователей' })
+  async getAll(): Promise<SafeUser[]> {
+    return this.users.findAll();
+  }
 
   @Get('me')
   @UseGuards(JwtAuthGuard)

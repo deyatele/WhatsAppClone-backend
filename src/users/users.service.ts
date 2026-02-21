@@ -9,28 +9,29 @@ import type { UpdateUserDto } from './dto/update-user.dto';
 import { Prisma } from '@prisma/client';
 import type { JsonWebKey, JsonWebKeyPrivate } from '../types/jwk';
 import { KeyWithPrivateBackupDto } from '../keys/dto/create-key.dto';
+import { SafeUser } from 'src/types';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // async findAll(): Promise<SafeUser[]> {
-  //   return this.prisma.user.findMany({
-  //     select: {
-  //       id: true,
-  //       name: true,
-  //       email: true,
-  //       phone: true,
-  //       isOnline: true,
-  //       lastSeen: true,
-  //       createdAt: true,
-  //       updatedAt: true,
-  //     },
-  //     include: {
-
-  //     }
-  //   });
-  // }
+  async findAll(): Promise<SafeUser[]> {
+    return this.prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        isOnline: true,
+        lastSeen: true,
+        createdAt: true,
+        updatedAt: true,
+        avatar: true,
+        publicKeyJwk: true,
+        privateKeyJwk: true,
+      },
+    });
+  }
 
   async findById(id: string) {
     if (!id) {
